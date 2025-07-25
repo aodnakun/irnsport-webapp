@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-DB_PATH = 'database/stock.db'
+DB_PATH = '/tmp/stock.db'
 
 # ฟังก์ชันสร้างตารางในฐานข้อมูล
 def init_db():
