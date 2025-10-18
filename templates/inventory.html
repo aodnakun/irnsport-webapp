@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}ภาพรวมสต็อก | IRNsport Stock{% endblock %}
+
+{% block content %}
+  <div class="row mb-4 g-3">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm text-center h-100">
+        <div class="card-body">
+          <h6 class="text-muted">ยอดรับเข้าสินค้ารวม</h6>
+          <p class="display-6 text-success">{{ totals['in'] or 0 }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm text-center h-100">
+        <div class="card-body">
+          <h6 class="text-muted">ยอดเบิกสินค้า</h6>
+          <p class="display-6 text-danger">{{ totals['out'] or 0 }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm text-center h-100">
+        <div class="card-body">
+          <h6 class="text-muted">คงเหลือทั้งหมด</h6>
+          <p class="display-6 text-primary">{{ totals['balance'] or 0 }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h3 class="h5 mb-3">สถานะสินค้าแยกตามรายการ</h3>
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>สินค้า</th>
+              <th class="text-end">รับเข้า (ชิ้น)</th>
+              <th class="text-end">เบิกออก (ชิ้น)</th>
+              <th class="text-end">คงเหลือ (ชิ้น)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in summary %}
+              <tr>
+                <td>{{ item['item'] }}</td>
+                <td class="text-end">{{ item['total_in'] or 0 }}</td>
+                <td class="text-end">{{ item['total_out'] or 0 }}</td>
+                <td class="text-end">{{ item['balance'] or 0 }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="4" class="text-center text-muted">ยังไม่มีข้อมูลสินค้า</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <h3 class="h5 mb-3">ประวัติการทำรายการล่าสุด</h3>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>วันที่</th>
+              <th>ประเภท</th>
+              <th>สินค้า</th>
+              <th class="text-end">จำนวน</th>
+              <th>เลขออเดอร์</th>
+              <th>ผู้ทำรายการ</th>
+              <th>หมายเหตุ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tx in transactions %}
+              <tr>
+                <td>{{ tx['date'] }}</td>
+                <td>
+                  {% if tx['action'] == 'รับเข้าสินค้า' %}
+                    <span class="badge text-bg-success">รับเข้า</span>
+                  {% else %}
+                    <span class="badge text-bg-danger">เบิก</span>
+                  {% endif %}
+                </td>
+                <td>{{ tx['item'] }}</td>
+                <td class="text-end">{{ tx['qty'] }}</td>
+                <td>{{ tx['order_ref'] or '-' }}</td>
+                <td>{{ tx['user'] }}</td>
+                <td>{{ tx['note'] or '-' }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="7" class="text-center text-muted">ยังไม่มีการบันทึกรายการ</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}
