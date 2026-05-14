@@ -7,6 +7,24 @@ import os
 app = Flask(__name__)
 DB_PATH = '/tmp/stock.db'
 
+
+def calculate_profit(sale_price_per_unit, qty, cost_per_unit, platform_fee_percent, ads_cost=0, shipping_cost=0, other_cost=0):
+    revenue = sale_price_per_unit * qty
+    cogs = cost_per_unit * qty
+    platform_fee = revenue * (platform_fee_percent / 100)
+    total_cost = cogs + platform_fee + ads_cost + shipping_cost + other_cost
+    net_profit = revenue - total_cost
+    margin_percent = (net_profit / revenue * 100) if revenue else 0
+
+    return {
+        'revenue': revenue,
+        'cogs': cogs,
+        'platform_fee': platform_fee,
+        'total_cost': total_cost,
+        'net_profit': net_profit,
+        'margin_percent': margin_percent,
+    }
+
 # ฟังก์ชันสร้างตารางในฐานข้อมูล
 def init_db():
     os.makedirs('database', exist_ok=True)  # สร้างโฟลเดอร์ถ้ายังไม่มี
@@ -29,6 +47,43 @@ def init_db():
 @app.route('/')
 def index():
     return redirect(url_for('borrow_form'))
+
+
+
+@app.route('/profit', methods=['GET', 'POST'])
+def profit_calculator():
+    values = {
+        'sale_price_per_unit': '',
+        'qty': '',
+        'cost_per_unit': '',
+        'platform_fee_percent': '',
+        'ads_cost': 0,
+        'shipping_cost': 0,
+        'other_cost': 0,
+    }
+    result = None
+    error = None
+
+    if request.method == 'POST':
+        try:
+            values = {key: request.form.get(key, '') for key in values}
+            sale_price_per_unit = float(values['sale_price_per_unit'])
+            qty = int(values['qty'])
+            cost_per_unit = float(values['cost_per_unit'])
+            platform_fee_percent = float(values['platform_fee_percent'])
+            ads_cost = float(values['ads_cost'] or 0)
+            shipping_cost = float(values['shipping_cost'] or 0)
+            other_cost = float(values['other_cost'] or 0)
+
+            result = calculate_profit(
+                sale_price_per_unit, qty, cost_per_unit, platform_fee_percent, ads_cost, shipping_cost, other_cost
+            )
+        except ValueError:
+            error = 'กรอกข้อมูลไม่ถูกต้อง กรุณาตรวจสอบตัวเลขอีกครั้ง'
+        except Exception as e:
+            error = f'เกิดข้อผิดพลาด: {str(e)}'
+
+    return render_template('profit_calculator.html', values=values, result=result, error=error)
 
 @app.route('/borrow', methods=['GET', 'POST'])
 def borrow_form():
